@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Knapsack DP – Bài giảng tương tác</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f17;
+    --bg2: #131726;
+    --bg3: #1a1f30;
+    --card: #1e2438;
+    --border: rgba(255,255,255,0.07);
+    --accent: #5b8af5;
+    --accent2: #a78bfa;
+    --green: #34d399;
+    --amber: #fbbf24;
+    --coral: #f87171;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --code-bg: #0a0c14;
+    --radius: 12px;
+  }
+  * { margin:0;padding:0;box-sizing:border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Sora', sans-serif;
+    font-size: 15px;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: linear-gradient(135deg, #0d0f17 0%, #131a2e 50%, #0d0f17 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 60px 0 40px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    top: -60px; left: 50%;
+    transform: translateX(-50%);
+    width: 600px; height: 300px;
+    background: radial-gradient(ellipse, rgba(91,138,245,0.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .tag {
+    display: inline-block;
+    padding: 4px 14px;
+    background: rgba(91,138,245,0.15);
+    color: var(--accent);
+    border: 1px solid rgba(91,138,245,0.3);
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  header h1 {
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 700;
+    letter-spacing: -.02em;
+    background: linear-gradient(135deg, #e2e8f0 0%, #5b8af5 50%, #a78bfa 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 12px;
+  }
+  header p {
+    color: var(--muted);
+    font-size: 15px;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  /* ── LAYOUT ── */
+  .container { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+  .section { padding: 56px 0 0; }
+  .section:last-child { padding-bottom: 80px; }
+
+  /* ── SECTION TITLES ── */
+  .section-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  h2 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    letter-spacing: -.02em;
+    margin-bottom: 16px;
+    color: var(--text);
+  }
+  h3 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--text);
+    margin: 24px 0 10px;
+  }
+  p { color: var(--muted); margin-bottom: 12px; }
+  strong { color: var(--text); font-weight: 600; }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px 28px;
+    margin-top: 20px;
+  }
+  .card p { margin-bottom: 8px; }
+
+  /* ── VARIANTS GRID ── */
+  .variants { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin-top: 20px; }
+  .variant-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color .2s;
+  }
+  .variant-card:hover { border-color: rgba(91,138,245,0.4); }
+  .variant-card::before {
+    content: '';
+    position: absolute; top:0; left:0; right:0; height:2px;
+  }
+  .variant-card.v1::before { background: var(--accent); }
+  .variant-card.v2::before { background: var(--green); }
+  .variant-card.v3::before { background: var(--accent2); }
+  .variant-card .v-title { font-weight: 600; font-size: 14px; margin-bottom: 6px; color: var(--text); }
+  .variant-card .v-desc { font-size: 13px; color: var(--muted); line-height: 1.6; }
+  .badge {
+    display: inline-block;
+    font-size: 11px; font-weight: 600;
+    padding: 2px 8px; border-radius: 100px;
+    margin-bottom: 8px;
+  }
+  .badge.blue { background: rgba(91,138,245,0.15); color: var(--accent); }
+  .badge.green { background: rgba(52,211,153,0.15); color: var(--green); }
+  .badge.purple { background: rgba(167,139,250,0.15); color: var(--accent2); }
+
+  /* ── CODE BLOCK ── */
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    overflow-x: auto;
+    margin: 16px 0;
+    position: relative;
+  }
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.75;
+    color: #c9d1e0;
+  }
+  .kw { color: #5b8af5; }
+  .fn { color: #a78bfa; }
+  .cm { color: #4a5568; font-style: italic; }
+  .nm { color: #34d399; }
+  .st { color: #fbbf24; }
+
+  /* ── DIVIDER ── */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 48px 0 0; }
+
+  /* ── INTERACTIVE: POSSIBLE TABLE ── */
+  #table-demo {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    margin-top: 20px;
+  }
+  .demo-title { font-weight: 600; font-size: 15px; margin-bottom: 4px; }
+  .demo-sub { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+  .table-wrap { overflow-x: auto; }
+  table.dp-table {
+    border-collapse: separate;
+    border-spacing: 4px;
+    min-width: 100%;
+  }
+  table.dp-table th {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    width: 42px; height: 38px;
+    text-align: center;
+  }
+  table.dp-table th.row-hdr { color: var(--accent2); }
+  table.dp-table td {
+    width: 42px; height: 38px;
+    text-align: center;
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .25s;
+    user-select: none;
+  }
+  td.dp-true {
+    background: rgba(91,138,245,0.2);
+    color: var(--accent);
+    border: 1px solid rgba(91,138,245,0.35);
+  }
+  td.dp-false {
+    background: var(--bg3);
+    color: var(--muted);
+    border: 1px solid transparent;
+  }
+  td.dp-highlight {
+    background: rgba(167,139,250,0.25) !important;
+    color: var(--accent2) !important;
+    border: 1px solid rgba(167,139,250,0.5) !important;
+    transform: scale(1.12);
+  }
+  td.dp-new {
+    background: rgba(52,211,153,0.2) !important;
+    color: var(--green) !important;
+    border: 1px solid rgba(52,211,153,0.4) !important;
+  }
+  .controls { display: flex; align-items: center; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+  .btn {
+    padding: 8px 18px;
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: 'Sora', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .btn:hover { background: var(--bg3); border-color: rgba(91,138,245,0.4); }
+  .btn.primary { background: rgba(91,138,245,0.15); border-color: rgba(91,138,245,0.4); color: var(--accent); }
+  .btn.primary:hover { background: rgba(91,138,245,0.25); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .step-info {
+    padding: 12px 16px;
+    background: var(--bg3);
+    border-radius: 8px;
+    border-left: 3px solid var(--accent);
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 16px;
+    min-height: 44px;
+  }
+  .step-info span { color: var(--text); font-weight: 600; }
+
+  /* ── INTERACTIVE: COIN CHANGE ── */
+  #coin-demo {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    margin-top: 20px;
+  }
+  .input-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 20px; }
+  .input-group label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-bottom: 6px;
+  }
+  .input-group input {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 14px;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    width: 200px;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .input-group input:focus { border-color: rgba(91,138,245,0.5); }
+  .dp-bar-wrap { display: flex; align-items: flex-end; gap: 3px; flex-wrap: wrap; margin-top: 12px; }
+  .dp-bar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+  }
+  .dp-bar .val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--accent);
+    min-width: 24px;
+    text-align: center;
+  }
+  .dp-bar .val.inf { color: var(--coral); }
+  .dp-bar .bar {
+    width: 24px;
+    border-radius: 4px 4px 0 0;
+    background: rgba(91,138,245,0.3);
+    border: 1px solid rgba(91,138,245,0.4);
+    transition: height .4s ease, background .3s;
+    min-height: 4px;
+  }
+  .dp-bar .bar.inf-bar { background: rgba(248,113,113,0.15); border-color: rgba(248,113,113,0.2); }
+  .dp-bar .bar.target { background: rgba(52,211,153,0.35); border-color: rgba(52,211,153,0.5); }
+  .dp-bar .idx { font-size: 9px; color: var(--muted); }
+  .result-box {
+    margin-top: 20px;
+    padding: 16px 20px;
+    background: var(--bg3);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    display: flex; align-items: center; gap: 14px;
+  }
+  .result-box .r-label { font-size: 13px; color: var(--muted); }
+  .result-box .r-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--green);
+  }
+  .result-box .r-val.none { color: var(--coral); }
+
+  /* ── PROBLEMS LIST ── */
+  .problems { display: flex; flex-direction: column; gap: 14px; margin-top: 20px; }
+  .problem-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 22px;
+    display: flex; gap: 16px; align-items: flex-start;
+    transition: border-color .2s;
+  }
+  .problem-card:hover { border-color: rgba(91,138,245,0.3); }
+  .prob-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+    background: rgba(91,138,245,0.1);
+    border: 1px solid rgba(91,138,245,0.2);
+    border-radius: 6px;
+    padding: 4px 10px;
+    white-space: nowrap;
+  }
+  .prob-body .prob-name { font-weight: 600; font-size: 14px; margin-bottom: 4px; color: var(--text); }
+  .prob-body .prob-desc { font-size: 13px; color: var(--muted); }
+  .complexity {
+    margin-left: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--amber);
+    background: rgba(251,191,36,0.08);
+    border: 1px solid rgba(251,191,36,0.2);
+    border-radius: 6px;
+    padding: 4px 10px;
+    white-space: nowrap;
+  }
+
+  /* ── FORMULA BOX ── */
+  .formula {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    background: var(--code-bg);
+    border: 1px solid rgba(91,138,245,0.2);
+    border-radius: 10px;
+    margin: 16px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--text);
+    text-align: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .formula .f-main { color: var(--accent); font-weight: 600; }
+  .formula .f-op { color: var(--muted); }
+  .formula .f-part { color: var(--accent2); }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--bg3); border-radius: 3px; }
+
+  /* ── TOC ── */
+  .toc {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    margin-top: 32px;
+  }
+  .toc-title { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 12px; }
+  .toc a {
+    display: block;
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 13px;
+    padding: 5px 0;
+    border-bottom: 1px solid transparent;
+    transition: color .15s;
+  }
+  .toc a:hover { color: var(--accent); }
+  .toc a span { color: var(--accent); font-family: 'JetBrains Mono', monospace; font-size: 11px; margin-right: 8px; }
+
+  @media (max-width: 600px) {
+    .dp-bar { gap: 2px; }
+    .dp-bar .bar { width: 18px; }
+    .dp-bar .val { font-size: 9px; min-width: 18px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="container">
+    <div class="tag">Chuyên đề Thuật toán</div>
+    <h1>Knapsack DP</h1>
+    <p>Quy hoạch động dạng ba lô — từ lý thuyết đến các bài toán cụ thể, có minh họa tương tác.</p>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- TOC -->
+  <div class="toc">
+    <div class="toc-title">Nội dung bài giảng</div>
+    <a href="#intro"><span>01</span>Knapsack DP là gì?</a>
+    <a href="#theory"><span>02</span>Lý thuyết cốt lõi & bảng possible[][]</a>
+    <a href="#demo1"><span>03</span>Demo tương tác — Bảng possible</a>
+    <a href="#coin-change"><span>04</span>Bài toán Coin Change (Minimizing Coins)</a>
+    <a href="#demo2"><span>05</span>Demo tương tác — Coin Change</a>
+    <a href="#problems"><span>06</span>Tổng quan các bài tập trong chuyên đề</a>
+  </div>
+
+  <!-- SECTION 1: INTRO -->
+  <div class="section" id="intro">
+    <div class="section-label">Phần 1</div>
+    <h2>Knapsack DP là gì?</h2>
+    <p>
+      <strong>Quy hoạch động (Dynamic Programming)</strong> kết hợp tính đúng đắn của duyệt toàn bộ và tính hiệu quả của thuật toán tham lam. Ý tưởng: chia bài toán lớn thành các bài toán con nhỏ hơn, giải từng bài toán con và lưu kết quả lại.
+    </p>
+    <p>
+      <strong>Knapsack</strong> (bài toán cái ba lô) là một trong những dạng DP kinh điển và phổ biến nhất. Hầu hết mọi bài Knapsack đều có chung một ý tưởng: mỗi vật phẩm có <em>trọng lượng dương</em>, tổng trọng lượng không vượt quá giới hạn cho trước.
+    </p>
+
+    <h3>Ba biến thể thường gặp</h3>
+    <div class="variants">
+      <div class="variant-card v1">
+        <div class="badge blue">0/1 Knapsack</div>
+        <div class="v-title">Chọn tập con tối ưu</div>
+        <div class="v-desc">Mỗi vật phẩm chỉ dùng được 1 lần. Tìm tập con có tổng giá trị lớn nhất mà không vượt quá sức chứa.</div>
+      </div>
+      <div class="variant-card v2">
+        <div class="badge green">Unbounded</div>
+        <div class="v-title">Dùng không giới hạn lần</div>
+        <div class="v-desc">Mỗi loại vật phẩm có thể chọn nhiều lần. Đếm số cách hoặc tìm cách tối ưu để lấp đầy ba lô.</div>
+      </div>
+      <div class="variant-card v3">
+        <div class="badge purple">Biến thể phức tạp</div>
+        <div class="v-title">Kết hợp nhiều ràng buộc</div>
+        <div class="v-desc">Thêm trạng thái phụ vào DP, như chia nhóm, tỉ lệ tài năng/trọng lượng, chu trình đường đua...</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- SECTION 2: THEORY -->
+  <div class="section" id="theory">
+    <div class="section-label">Phần 2</div>
+    <h2>Lý thuyết cốt lõi</h2>
+    <p>
+      Bài toán gốc: Cho danh sách trọng lượng <code style="background:var(--code-bg);padding:2px 7px;border-radius:5px;font-family:'JetBrains Mono',monospace;font-size:13px;">[1, 3, 3, 5]</code>, xác định tất cả các tổng có thể tạo được.
+    </p>
+
+    <h3>Định nghĩa hàm trạng thái</h3>
+    <p>
+      Ta định nghĩa <strong>possible(x, k) = true</strong> nếu có thể tạo ra tổng x bằng cách sử dụng k trọng lượng đầu tiên.
+    </p>
+
+    <div class="formula">
+      <span class="f-main">possible(x, k)</span>
+      <span class="f-op">=</span>
+      <span class="f-part">possible(x − w<sub>k</sub>, k−1)</span>
+      <span class="f-op">||</span>
+      <span class="f-part">possible(x, k−1)</span>
+    </div>
+
+    <p>Công thức này thể hiện: để tạo tổng x dùng k vật phẩm đầu, ta <strong>hoặc là chọn</strong> w<sub>k</sub> (thì còn lại phải tạo x − w<sub>k</sub> từ k−1 vật) <strong>hoặc không chọn</strong> w<sub>k</sub> (thì tạo x từ k−1 vật).</p>
+
+    <h3>Cài đặt 2D (tường minh)</h3>
+<pre><code><span class="cm">// possible[x][k] = true nếu tổng x đạt được bằng k vật đầu</span>
+possible[<span class="nm">0</span>][<span class="nm">0</span>] = <span class="kw">true</span>;
+<span class="kw">for</span> (<span class="kw">int</span> k = <span class="nm">1</span>; k &lt;= n; k++) {
+    <span class="kw">for</span> (<span class="kw">int</span> x = <span class="nm">0</span>; x &lt;= W; x++) {
+        <span class="kw">if</span> (x - w[k] &gt;= <span class="nm">0</span>)
+            possible[x][k] |= possible[x - w[k]][k - <span class="nm">1</span>];
+        possible[x][k] |= possible[x][k - <span class="nm">1</span>];
+    }
+}</code></pre>
+
+    <h3>Cài đặt 1D (tối ưu bộ nhớ)</h3>
+<pre><code><span class="cm">// Chỉ cần 1 mảng, duyệt ngược để tránh dùng lại vật phẩm</span>
+possible[<span class="nm">0</span>] = <span class="kw">true</span>;
+<span class="kw">for</span> (<span class="kw">int</span> k = <span class="nm">1</span>; k &lt;= n; k++) {
+    <span class="kw">for</span> (<span class="kw">int</span> x = W; x &gt;= <span class="nm">0</span>; x--) {
+        <span class="kw">if</span> (possible[x]) possible[x + w[k]] = <span class="kw">true</span>;
+    }
+}</code></pre>
+
+    <div class="card">
+      <p style="margin:0;color:var(--text);">💡 <strong>Tại sao duyệt ngược?</strong> Khi duyệt x từ lớn đến nhỏ, đảm bảo mỗi vật phẩm chỉ được xét 1 lần (0/1 Knapsack). Nếu duyệt xuôi, vật phẩm k có thể được dùng nhiều lần — đó là Unbounded Knapsack.</p>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- SECTION 3: DEMO TABLE -->
+  <div class="section" id="demo3">
+    <div class="section-label">Demo 1</div>
+    <h2>Bảng possible — từng bước</h2>
+    <p>Nhấn <strong>Bước tiếp</strong> để xem DP lấp dần bảng possible[x][k] với trọng lượng [1, 3, 3, 5].</p>
+
+    <div id="table-demo">
+      <div class="demo-title">Trọng lượng: [1, 3, 3, 5]</div>
+      <div class="demo-sub">X đánh dấu tổng đạt được. Hàng k = số vật phẩm đã xét.</div>
+      <div class="table-wrap">
+        <table class="dp-table" id="dp-tbl">
+          <!-- JS builds this -->
+        </table>
+      </div>
+      <div class="step-info" id="step-info">Nhấn <span>Bước tiếp →</span> để bắt đầu điền bảng.</div>
+      <div class="controls">
+        <button class="btn primary" onclick="nextStep()" id="btn-next">Bước tiếp →</button>
+        <button class="btn" onclick="autoPlay()" id="btn-auto">▶ Tự động</button>
+        <button class="btn" onclick="resetTable()">↺ Đặt lại</button>
+        <span style="font-size:13px;color:var(--muted);">Bước <span id="step-num">0</span> / <span id="step-total">0</span></span>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- SECTION 4: COIN CHANGE THEORY -->
+  <div class="section" id="coin-change">
+    <div class="section-label">Phần 3</div>
+    <h2>Bài toán Coin Change</h2>
+    <p>
+      Đây là ứng dụng kinh điển của Knapsack: Cho n loại đồng xu, tìm số xu ít nhất để tạo đúng tổng x.
+    </p>
+
+    <h3>Định nghĩa trạng thái DP</h3>
+    <p><strong>dp[i]</strong> = số đồng xu ít nhất để tạo tổng i</p>
+
+    <div class="formula">
+      <span class="f-main">dp[i]</span>
+      <span class="f-op">=</span>
+      <span class="f-op">min over all coins c:</span>
+      <span class="f-part">dp[i − c] + 1</span>
+    </div>
+
+    <h3>Khởi tạo và kết quả</h3>
+    <div class="card">
+      <p>• <strong>dp[0] = 0</strong> — Không cần xu nào để tạo tổng 0</p>
+      <p>• <strong>dp[i] = ∞</strong> ban đầu — Chưa biết cách tạo tổng i</p>
+      <p style="margin:0;">• Kết quả: dp[x] (nếu vẫn là ∞ → in −1)</p>
+    </div>
+
+    <h3>Code tham khảo (C++)</h3>
+<pre><code><span class="kw">#include</span> <span class="st">&lt;iostream&gt;</span>
+<span class="kw">#include</span> <span class="st">&lt;vector&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+    <span class="kw">int</span> n, x;
+    cin &gt;&gt; n &gt;&gt; x;
+    vector&lt;<span class="kw">int</span>&gt; coins(n);
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nm">0</span>; i &lt; n; i++) cin &gt;&gt; coins[i];
+
+    <span class="kw">const int</span> INF = <span class="nm">1e9</span>;
+    vector&lt;<span class="kw">int</span>&gt; dp(x + <span class="nm">1</span>, INF);
+    dp[<span class="nm">0</span>] = <span class="nm">0</span>;
+
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nm">1</span>; i &lt;= x; i++) {          <span class="cm">// duyệt tổng</span>
+        <span class="kw">for</span> (<span class="kw">int</span> c : coins) {                 <span class="cm">// thử từng xu</span>
+            <span class="kw">if</span> (i - c &gt;= <span class="nm">0</span>)
+                dp[i] = min(dp[i], dp[i - c] + <span class="nm">1</span>);
+        }
+    }
+    cout &lt;&lt; (dp[x] == INF ? <span class="nm">-1</span> : dp[x]) &lt;&lt; <span class="st">"\n"</span>;
+}</code></pre>
+
+    <p>Độ phức tạp: <strong style="color:var(--amber);">O(n × x)</strong> — vòng lặp ngoài chạy x lần, vòng trong duyệt n loại xu.</p>
+  </div>
+
+  <hr class="divider">
+
+  <!-- SECTION 5: COIN DEMO -->
+  <div class="section" id="demo2">
+    <div class="section-label">Demo 2</div>
+    <h2>Thử nghiệm Coin Change</h2>
+    <p>Nhập bộ xu và tổng cần tạo, xem ngay mảng dp[] trực quan.</p>
+
+    <div id="coin-demo">
+      <div class="input-row">
+        <div class="input-group">
+          <label>Danh sách xu (cách nhau bởi dấu cách)</label>
+          <input type="text" id="coins-input" value="1 5 7" placeholder="VD: 1 5 7">
+        </div>
+        <div class="input-group">
+          <label>Tổng cần tạo (x)</label>
+          <input type="number" id="target-input" value="11" min="1" max="50" style="width:120px">
+        </div>
+        <button class="btn primary" onclick="runCoin()" style="margin-bottom:1px">Tính →</button>
+      </div>
+      <div id="coin-viz"></div>
+      <div id="coin-result"></div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- SECTION 6: PROBLEMS -->
+  <div class="section" id="problems">
+    <div class="section-label">Phần 4</div>
+    <h2>Tổng quan các bài tập</h2>
+    <p>Tài liệu trình bày 8 bài có hướng dẫn và 4 bài tự luyện, phủ đầy đủ các biến thể của Knapsack.</p>
+
+    <div class="problems">
+      <div class="problem-card">
+        <div class="prob-num">BT 1</div>
+        <div class="prob-body">
+          <div class="prob-name">Minimizing Coins – Giảm thiểu số tiền xu</div>
+          <div class="prob-desc">Unbounded Knapsack. Tìm số xu ít nhất để tạo đúng tổng x. dp[i] = min số xu để tạo i.</div>
+        </div>
+        <div class="complexity">O(n·x)</div>
+      </div>
+      <div class="problem-card">
+        <div class="prob-num">BT 2</div>
+        <div class="prob-body">
+          <div class="prob-name">Coin Combinations I – Tổ hợp có thứ tự</div>
+          <div class="prob-desc">Đếm số dãy xu (tính thứ tự) tạo ra tổng x. Duyệt tổng trước, xu sau → dp[i] += dp[i−c].</div>
+        </div>
+        <div class="complexity">O(n·x)</div>
+      </div>
+      <div class="problem-card">
+        <div class="prob-num">BT 3</div>
+        <div class="prob-body">
+          <div class="prob-name">Coin Combinations II – Tổ hợp không thứ tự</div>
+          <div class="prob-desc">Đếm số cách chọn xu (không tính thứ tự) để tạo tổng x. Duyệt xu trước, tổng sau.</div>
+        </div>
+        <div class="complexity">O(n·x)</div>
+      </div>
+      <div class="problem-card">
+        <div class="prob-num">BT 4</div>
+        <div class="prob-body">
+          <div class="prob-name">Bookshop – Hiệu sách</div>
+          <div class="prob-desc">0/1 Knapsack cổ điển. Mỗi sách mua tối đa 1 lần. Tối đa số trang trong ngân sách x. Duyệt ngược j.</div>
+        </div>
+        <div class="complexity">O(n·x)</div>
+      </div>
+      <div class="problem-card">
+        <div class="prob-num">BT 5</div>
+        <div class="prob-body">
+          <div class="prob-name">Coding Company – Chia nhóm lập trình viên</div>
+          <div class="prob-desc">DP 3 chiều: (người đã xét, số nhóm đang mở, tổng penalty). Biến thể phức tạp, sắp xếp trước.</div>
+        </div>
+        <div class="complexity">O(n²·x)</div>
+      </div>
+      <div class="problem-card">
+        <div class="prob-num">BT 6</div>
+        <div class="prob-body">
+          <div class="prob-name">Fruit Feast – Bữa tiệc trái cây</div>
+          <div class="prob-desc">Unbounded + 1 biến cố (uống nước 1 lần). DP 2 trạng thái: chưa uống / đã uống nước.</div>
+        </div>
+        <div class="complexity">O(T)</div>
+      </div>
+      <div class="problem-card">
+        <div class="prob-num">BT 7</div>
+        <div class="prob-body">
+          <div class="prob-name">Talent Show – Tỉ lệ tài năng/trọng lượng</div>
+          <div class="prob-desc">Binary search trên kết quả, mỗi lần kiểm tra bằng 0/1 Knapsack với adjusted talent.</div>
+        </div>
+        <div class="complexity">O(N·W·log)</div>
+      </div>
+      <div class="problem-card">
+        <div class="prob-num">BT 8</div>
+        <div class="prob-body">
+          <div class="prob-name">Mooriokart – Đường đua</div>
+          <div class="prob-desc">DFS tách cây + Knapsack cộng dồn chiều dài đường đi trong rừng, nhân hoán vị chu trình.</div>
+        </div>
+        <div class="complexity">O(N·Y^1.5)</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<!-- ═══════════════ SCRIPTS ═══════════════ -->
+<script>
+// ─────────────────────────────────────────
+// DEMO 1: Possible Table
+// ─────────────────────────────────────────
+const weights = [1, 3, 3, 5];
+const n = weights.length;
+const W = weights.reduce((a,b)=>a+b, 0); // =12
+
+// Build initial 2D array
+let table = Array.from({length: n+1}, () => Array(W+1).fill(false));
+table[0][0] = true;
+
+// Precompute all steps
+let steps = [];
+for (let k = 1; k <= n; k++) {
+  for (let x = 0; x <= W; x++) {
+    let changed = false;
+    let newVal = table[k-1][x];
+    if (x - weights[k-1] >= 0 && table[k-1][x - weights[k-1]]) newVal = true;
+    if (newVal !== table[k][x]) changed = true;
+    steps.push({k, x, from_prev: table[k-1][x], from_wk: x - weights[k-1] >= 0 ? table[k-1][x - weights[k-1]] : false, newVal, changed});
+    table[k][x] = newVal;
+  }
+}
+
+// Reset table for rendering
+table = Array.from({length: n+1}, () => Array(W+1).fill(false));
+table[0][0] = true;
+
+let currentStep = -1;
+let autoInterval = null;
+
+document.getElementById('step-total').textContent = steps.length;
+
+function buildTableDOM() {
+  const tbl = document.getElementById('dp-tbl');
+  let html = '<thead><tr><th class="row-hdr">k\\x</th>';
+  for (let x = 0; x <= W; x++) html += `<th>${x}</th>`;
+  html += '</tr></thead><tbody>';
+  for (let k = 0; k <= n; k++) {
+    html += `<tr><th class="row-hdr">${k}</th>`;
+    for (let x = 0; x <= W; x++) {
+      const v = table[k][x];
+      html += `<td id="c${k}_${x}" class="${v ? 'dp-true' : 'dp-false'}">${v ? 'X' : '·'}</td>`;
+    }
+    html += '</tr>';
+  }
+  html += '</tbody>';
+  tbl.innerHTML = html;
+}
+
+function updateCell(k, x, val, cls='') {
+  const td = document.getElementById(`c${k}_${x}`);
+  if (!td) return;
+  td.className = val ? 'dp-true' : 'dp-false';
+  if (cls) td.classList.add(cls);
+  td.textContent = val ? 'X' : '·';
+}
+
+function clearHighlights() {
+  document.querySelectorAll('#dp-tbl td').forEach(td => {
+    td.classList.remove('dp-highlight','dp-new');
+  });
+}
+
+function nextStep() {
+  clearHighlights();
+  currentStep++;
+  if (currentStep >= steps.length) {
+    document.getElementById('btn-next').disabled = true;
+    document.getElementById('btn-auto').disabled = true;
+    document.getElementById('step-info').innerHTML = '✅ Hoàn thành! Hàng cuối (k=4) cho thấy tất cả tổng có thể với 4 trọng lượng.';
+    clearInterval(autoInterval); autoInterval = null;
+    return;
+  }
+  const s = steps[currentStep];
+  document.getElementById('step-num').textContent = currentStep + 1;
+
+  // Apply
+  table[s.k][s.x] = s.newVal;
+  updateCell(s.k, s.x, s.newVal, s.changed && s.newVal ? 'dp-new' : '');
+
+  // Highlight sources
+  if (s.from_prev) {
+    const td = document.getElementById(`c${s.k-1}_${s.x}`);
+    if (td) td.classList.add('dp-highlight');
+  }
+  if (s.from_wk && s.x - weights[s.k-1] >= 0) {
+    const td = document.getElementById(`c${s.k-1}_${s.x - weights[s.k-1]}`);
+    if (td) td.classList.add('dp-highlight');
+  }
+
+  let msg = `Tính <span>possible[${s.x}][${s.k}]</span> — thêm w<sub>${s.k}</sub>=${weights[s.k-1]}: `;
+  if (s.newVal) {
+    msg += s.changed
+      ? `<span style="color:var(--green)">TRUE mới!</span> (đạt được từ tổng ${s.x - weights[s.k-1]} bằng k−1 vật)`
+      : `<span>TRUE</span> (đã true từ bước trước)`;
+  } else {
+    msg += `<span style="color:var(--coral)">FALSE</span> — không tạo được tổng ${s.x} bằng ${s.k} vật đầu.`;
+  }
+  document.getElementById('step-info').innerHTML = msg;
+}
+
+function autoPlay() {
+  if (autoInterval) { clearInterval(autoInterval); autoInterval = null; document.getElementById('btn-auto').textContent = '▶ Tự động'; return; }
+  document.getElementById('btn-auto').textContent = '⏸ Dừng';
+  autoInterval = setInterval(() => {
+    if (currentStep >= steps.length - 1) { clearInterval(autoInterval); autoInterval = null; document.getElementById('btn-auto').textContent = '▶ Tự động'; }
+    else nextStep();
+  }, 180);
+}
+
+function resetTable() {
+  clearInterval(autoInterval); autoInterval = null;
+  currentStep = -1;
+  table = Array.from({length: n+1}, () => Array(W+1).fill(false));
+  table[0][0] = true;
+  buildTableDOM();
+  document.getElementById('step-num').textContent = '0';
+  document.getElementById('btn-next').disabled = false;
+  document.getElementById('btn-auto').disabled = false;
+  document.getElementById('btn-auto').textContent = '▶ Tự động';
+  document.getElementById('step-info').innerHTML = 'Nhấn <span>Bước tiếp →</span> để bắt đầu điền bảng.';
+}
+
+buildTableDOM();
+
+// ─────────────────────────────────────────
+// DEMO 2: Coin Change Visualizer
+// ─────────────────────────────────────────
+function runCoin() {
+  const coinsRaw = document.getElementById('coins-input').value.trim().split(/\s+/).map(Number).filter(v => v > 0 && !isNaN(v));
+  const x = parseInt(document.getElementById('target-input').value);
+  if (!coinsRaw.length || isNaN(x) || x < 1 || x > 60) {
+    document.getElementById('coin-viz').innerHTML = '<p style="color:var(--coral);font-size:13px;">Nhập đúng dữ liệu (x từ 1–60).</p>';
+    return;
+  }
+
+  const INF = 1e8;
+  const dp = new Array(x + 1).fill(INF);
+  dp[0] = 0;
+  for (let i = 1; i <= x; i++) {
+    for (const c of coinsRaw) {
+      if (i - c >= 0 && dp[i - c] + 1 < dp[i]) dp[i] = dp[i - c] + 1;
+    }
+  }
+
+  const maxVal = Math.max(...dp.filter(v => v < INF), 1);
+  const BAR_MAX = 100;
+
+  let barsHTML = '<div class="dp-bar-wrap">';
+  for (let i = 0; i <= x; i++) {
+    const isInf = dp[i] >= INF;
+    const barH = isInf ? 8 : Math.max(8, Math.round(dp[i] / maxVal * BAR_MAX));
+    barsHTML += `<div class="dp-bar">
+      <div class="val ${isInf ? 'inf' : ''}">${isInf ? '∞' : dp[i]}</div>
+      <div class="bar ${isInf ? 'inf-bar' : ''} ${i === x ? 'target' : ''}" style="height:${barH}px"></div>
+      <div class="idx">${i}</div>
+    </div>`;
+  }
+  barsHTML += '</div>';
+  barsHTML += `<p style="font-size:12px;color:var(--muted);margin-top:8px;">Số trên mỗi cột = dp[i] (số xu ít nhất). <span style="color:var(--green)">■</span> = vị trí đích x=${x}. <span style="color:var(--coral)">∞</span> = không đạt được.</p>`;
+  document.getElementById('coin-viz').innerHTML = barsHTML;
+
+  const res = dp[x];
+  const resHTML = `<div class="result-box">
+    <div>
+      <div class="r-label">Xu ít nhất để tạo tổng ${x}</div>
+      <div class="r-label" style="margin-top:4px;font-size:12px;">Xu đã dùng: [${coinsRaw.join(', ')}]</div>
+    </div>
+    <div class="r-val ${res >= INF ? 'none' : ''}">${res >= INF ? '−1' : res}</div>
+  </div>`;
+  document.getElementById('coin-result').innerHTML = resHTML;
+}
+
+runCoin(); // run on load
+</script>
+
+</body>
+</html>
